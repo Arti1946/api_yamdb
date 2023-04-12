@@ -1,5 +1,6 @@
-from rest_framework import filters, mixins, viewsets
-from rest_framework.permissions import IsAuthenticated
+from rest_framework import filters, viewsets, status
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -40,17 +41,15 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = Users.objects.all()
 
 
-class RetrieveUpdateViewSet(
-    mixins.RetrieveModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet
-):
-    pass
-
-
-class UserMeViewSet(RetrieveUpdateViewSet):
-    serializer_class = UserSerializer
-    permission_classes = IsAuthenticated
-
-    def get_queryset(self):
-        user = self.request.user
-        new_queryset = Users.objects.filter(username=user)
-        return new_queryset
+@api_view(["GET", "PATCH"])
+def api_me(request):
+    me = request.user.username
+    info = Users.objects.get(username=me)
+    if request.method == "PATCH":
+        serializer = UserSerializer(info, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    serializer = UserSerializer(info)
+    return Response(serializer.data)
