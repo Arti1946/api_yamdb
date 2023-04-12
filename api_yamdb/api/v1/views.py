@@ -28,8 +28,8 @@ class GenreViewSet(viewsets.ModelViewSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
+    queryset = Titles.objects.select_related("category")
     filterset_fields = ("category", "genre", "name", "year")
-    queryset = Titles.objects.select_related("genre", "category")
     serializer_class = TitleSerializer
 
 

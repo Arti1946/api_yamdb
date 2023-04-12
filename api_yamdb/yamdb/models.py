@@ -21,6 +21,9 @@ class Categories(models.Model):
         max_length=50, blank=False, null=False, unique=True
     )
 
+    def __str__(self):
+        return self.slug
+
 
 class Genres(models.Model):
     name = models.CharField(max_length=256, blank=False, null=False)
@@ -28,21 +31,19 @@ class Genres(models.Model):
         max_length=50, blank=False, null=False, unique=True
     )
 
+    def __str__(self):
+        return self.slug
+
 
 class Titles(models.Model):
     name = models.CharField(
         "Название", max_length=256, blank=False, null=False
     )
-    year = models.IntegerField(
-        "Год выпуска", blank=False, null=False
-    )
-    description = models.TextField("Описание")
-    genre = models.ForeignKey(
+    year = models.IntegerField("Год выпуска", blank=False, null=False)
+    description = models.TextField("Описание", blank=True, null=True)
+    genre = models.ManyToManyField(
         Genres,
-        blank=False,
-        null=False,
-        on_delete=models.DO_NOTHING,
-        related_name="titles",
+        through="GenreTitle",
     )
     category = models.ForeignKey(
         Categories,
@@ -51,3 +52,11 @@ class Titles(models.Model):
         on_delete=models.DO_NOTHING,
         related_name="titles",
     )
+
+
+class GenreTitle(models.Model):
+    genre = models.ForeignKey(Genres, on_delete=models.CASCADE)
+    title = models.ForeignKey(Titles, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.title} {self.genre}"
