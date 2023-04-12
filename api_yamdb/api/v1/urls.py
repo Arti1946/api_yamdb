@@ -7,7 +7,7 @@ from api.v1.views import (
     CategoryViewSet,
     GenreViewSet,
     UserViewSet,
-    UserMeViewSet,
+    api_me,
 )
 
 router = routers.DefaultRouter()
@@ -16,8 +16,8 @@ router.register(r"titles", TitleViewSet)
 router.register(r"categories", CategoryViewSet)
 router.register(r"genres", GenreViewSet)
 router.register(r"users", UserViewSet)
-router.register(r"users/me", UserMeViewSet, basename="me")
 
 urlpatterns = [
+    path("users/me/", api_me),
     path("", include(router.urls)),
 ]
