@@ -9,6 +9,7 @@ ROLES = [
 
 
 class Users(AbstractUser):
+    id = models.IntegerField(unique=True)
     bio = models.TextField("Биография", blank=True)
     role = models.CharField(choices=ROLES, max_length=9, default="user")
     email = models.EmailField(unique=True)
