@@ -54,6 +54,7 @@ class Titles(models.Model):
         on_delete=models.DO_NOTHING,
         related_name="titles",
     )
+
     @property
     def rating(self):
         rating = self.reviews.aggregate(Avg('score'))['score__avg']
