@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404
 
 from datetime import datetime as dt
 
-from yamdb.models import Categories, Genres, Titles, Users, GenreTitle
+from yamdb.models import Categories, Genres, Titles, Users, GenreTitle, Reviews, Comments
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -29,7 +29,7 @@ class TitleSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = ("id", "name", "year", "description", "genre", "category")
+        fields = ("id", "name", "year", "description", "genre", "category", "rating")
         model = Titles
 
     def validate_birth_year(self, value):
@@ -58,3 +58,36 @@ class UserSerializer(serializers.ModelSerializer):
             "role",
         )
         model = Users
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        slug_field='username',
+        read_only=True
+    )
+
+    class Meta:
+        model = Reviews
+        fields = (
+            "title",
+            "text",
+            "author",
+            "score",
+            "pub_date",
+        )
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        slug_field='username',
+        read_only=True
+    )
+
+    class Meta:
+        model = Comments
+        fields = (
+            "review",
+            "text",
+            "author",
+            "pub_date",
+        )
