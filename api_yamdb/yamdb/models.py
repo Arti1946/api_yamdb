@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.db.models import Avg
 
 ROLES = [
     ("user", "Пользователь"),
@@ -55,11 +54,6 @@ class Titles(models.Model):
         related_name="titles",
     )
 
-    @property
-    def rating(self):
-        rating = self.reviews.aggregate(Avg('score'))['score__avg']
-        return rating if rating is not None else None
-
 
 class GenreTitle(models.Model):
     genre = models.ForeignKey(Genres, on_delete=models.CASCADE)
@@ -70,7 +64,7 @@ class GenreTitle(models.Model):
 
 
 class Reviews(models.Model):
-    title = models.ForeignKey(Titles, on_delete=models.CASCADE)
+    title = models.ForeignKey(Titles, on_delete=models.CASCADE, related_name='reviews')
     text = models.TextField("Текст")
     author = models.ForeignKey(Users, on_delete=models.CASCADE)
     score = models.PositiveIntegerField(choices=[(i, i) for i in range(1, 11)])
