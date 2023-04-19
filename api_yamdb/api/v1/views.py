@@ -1,14 +1,14 @@
-from rest_framework import filters, viewsets, mixins, permissions, status
+from rest_framework import filters, viewsets, permissions, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 
 from yamdb.models import Users, Titles, Categories, Genres, Reviews, Comments
-from .serializers import (
+from api.v1.serializers import (
     TitleSerializer, CategorySerializer, GenreSerializer,
     ReviewSerializer, CommentSerializer, UserSerializer
 )
-from .permissions import IsAuthorOrAdminOrModerator, IsAuthorOrAdminOrModeratorComment
+from api.permissions import IsAuthorOrAdminOrModerator, IsAuthorOrAdminOrModeratorComment
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -28,7 +28,7 @@ class GenreViewSet(viewsets.ModelViewSet):
 class TitleViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     queryset = Titles.objects.select_related("category")
-    filterset_fields = ("category", "genre", "name", "year", "rating")
+    filterset_fields = ("category", "genre", "name", "year")
     serializer_class = TitleSerializer
 
 

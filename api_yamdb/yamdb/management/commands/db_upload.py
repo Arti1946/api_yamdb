@@ -2,7 +2,7 @@ import csv
 
 from django.core.management.base import BaseCommand
 
-from yamdb.models import Categories, Genres, GenreTitle, Titles, Users
+from yamdb.models import Categories, Genres, GenreTitle, Titles, Users, Comments, Reviews
 
 
 def category(file):
@@ -53,6 +53,33 @@ def users(file):
         )
 
 
+def comments(file):
+    input_file = csv.DictReader(open(file, encoding="utf8"))
+    for row in input_file:
+        author = Users.objects.get(id=row["author"])
+        Comments.objects.create(
+            id=row["id"],
+            review_id=row["review_id"],
+            text=row["text"],
+            author=author,
+            pub_date=row["pub_date"],
+        )
+
+
+def review(file):
+    input_file = csv.DictReader(open(file, encoding="utf8"))
+    for row in input_file:
+        author = Users.objects.get(id=row["author"])
+        Reviews.objects.create(
+            id=row["id"],
+            title_id=row["title_id"],
+            text=row["text"],
+            author=author,
+            score=row["score"],
+            pub_date=row["pub_date"],
+        )
+
+
 class Command(BaseCommand):
     def handle(self, *args, **options):
         genre("static/data/genre.csv")
@@ -60,3 +87,5 @@ class Command(BaseCommand):
         titles("static/data/titles.csv")
         genre_title("static/data/genre_title.csv")
         users("static/data/users.csv")
+        review("static/data/review.csv")
+        comments("static/data/comments.csv")
