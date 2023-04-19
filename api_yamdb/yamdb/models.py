@@ -60,6 +60,7 @@ class Titles(models.Model):
         rating = self.reviews.aggregate(Avg('score'))['score__avg']
         return rating if rating is not None else None
 
+
 class GenreTitle(models.Model):
     genre = models.ForeignKey(Genres, on_delete=models.CASCADE)
     title = models.ForeignKey(Titles, on_delete=models.CASCADE)
