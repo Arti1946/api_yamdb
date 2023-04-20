@@ -9,6 +9,9 @@ from api.v1.views import (
     TitleViewSet,
     UserViewSet,
     api_me,
+    send_confirmation_code,
+    get_jwt_token,
+    UserDetailPach
 )
 
 router = DefaultRouter()
@@ -23,4 +26,8 @@ router.register(r"users", UserViewSet)
 urlpatterns = [
     path("users/me/", api_me),
     path("", include(router.urls)),
+    path('v1/auth/signup/', send_confirmation_code),
+    path('v1/auth/token/', get_jwt_token),
+    path('v1/users/me/', UserDetailPach.as_view()),
+    path('v1/', include(router.urls)),
 ]

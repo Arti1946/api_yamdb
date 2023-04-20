@@ -7,6 +7,30 @@ from datetime import datetime as dt
 from yamdb.models import Categories, Genres, Titles, Users, GenreTitle, Reviews, Comments
 
 
+class SendCodeSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+    username = serializers.RegexField(
+        regex=r'^[\w.@+-]+$',
+        max_length=150,
+        required=True
+    )
+
+    def validate_username(self, value):
+        if value == 'me':
+            raise serializers.ValidationError(
+                "Нельзя выбрать такое имя")
+        return value
+
+
+class CheckCodeSerializer(serializers.Serializer):
+    username = serializers.RegexField(
+        regex=r'^[\w.@+-]+$',
+        max_length=150,
+        required=True
+    )
+    confirmation_code = serializers.CharField(required=True)
+
+
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         fields = ("name", "slug")
