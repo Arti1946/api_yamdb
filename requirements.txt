@@ -14,3 +14,12 @@ Pillow==9.3.0
 djoser==2.1.0
 
 
+django-filter==22.1
+
+djangorestframework-simplejwt==4.7.2
+
+Pillow==9.3.0
+
+djoser==2.1.0
+
+

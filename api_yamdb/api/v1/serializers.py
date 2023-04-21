@@ -1,10 +1,34 @@
 from rest_framework import serializers
-from django.db.models import Avg
+
 from django.shortcuts import get_object_or_404
 
 from datetime import datetime as dt
 
 from yamdb.models import Categories, Genres, Titles, Users, GenreTitle, Reviews, Comments
+
+
+class SendCodeSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+    username = serializers.RegexField(
+        regex=r'^[\w.@+-]+$',
+        max_length=150,
+        required=True
+    )
+
+    def validate_username(self, value):
+        if value == 'me':
+            raise serializers.ValidationError(
+                "Нельзя выбрать такое имя")
+        return value
+
+
+class CheckCodeSerializer(serializers.Serializer):
+    username = serializers.RegexField(
+        regex=r'^[\w.@+-]+$',
+        max_length=150,
+        required=True
+    )
+    confirmation_code = serializers.CharField(required=True)
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -27,7 +51,6 @@ class TitleSerializer(serializers.ModelSerializer):
         slug_field="slug",
         queryset=Categories.objects.all(),
     )
-    rating = serializers.SerializerMethodField()
 
     class Meta:
         fields = ("id", "name", "year", "description", "genre", "category", "rating")
@@ -46,10 +69,6 @@ class TitleSerializer(serializers.ModelSerializer):
             current_genre = get_object_or_404(Genres, slug=genre)
             GenreTitle.objects.create(genre=current_genre, title=title)
         return title
-
-    def get_rating(self, title):
-        rating = title.reviews.aggregate(Avg('score'))['score__avg']
-        return rating if rating is not None else None
 
 
 class UserSerializer(serializers.ModelSerializer):
