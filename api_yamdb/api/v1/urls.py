@@ -8,7 +8,9 @@ from api.v1.views import (
     ReviewViewSet,
     TitleViewSet,
     UserViewSet,
-    api_me,
+    send_confirmation_code,
+    get_jwt_token,
+    UserDetailPach
 )
 
 router = DefaultRouter()
@@ -21,6 +23,8 @@ router.register(r"genres", GenreViewSet)
 router.register(r"users", UserViewSet)
 
 urlpatterns = [
-    path("users/me/", api_me),
+    path('users/me/', UserDetailPach.as_view()),
     path("", include(router.urls)),
+    path('auth/signup/', send_confirmation_code),
+    path('auth/token/', get_jwt_token),
 ]
