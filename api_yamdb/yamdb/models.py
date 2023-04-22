@@ -9,11 +9,11 @@ ROLES = [
 
 
 class Users(AbstractUser):
-    id = models.IntegerField(unique=True)
     bio = models.TextField("Биография", blank=True)
     role = models.CharField(choices=ROLES, max_length=9, default="user")
     email = models.EmailField(unique=True)
-    username = models.CharField(max_length=150, unique=True, primary_key=True)
+    username = models.CharField(max_length=150, unique=True)
+    confirmation_code = models.CharField(max_length=40, blank=True, null=True)
 
 
 class Categories(models.Model):
