@@ -1,35 +1,35 @@
 from rest_framework import permissions
 
 
-class IsAdminOrReadOnly(permissions.IsAdminUser):
+class IsAdmin(permissions.BasePermission):
     def has_permission(self, request, view):
-        is_admin = super().has_permission(request, view)
-        return request.method in permissions.SAFE_METHODS or is_admin
+        return request.user.is_authenticated and request.user.role == "admin"
 
 
-class IsAuthorOrAdminOrModerator(permissions.BasePermission):
+class IsAdminOrReadOnly(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return (
+            request.method in permissions.SAFE_METHODS
+            or request.user.is_authenticated and request.user.role == "admin"
+        )
+
+
+class IsAuthorOrAdminOrModeratorOrReadOnly(permissions.BasePermission):
+
     def has_object_permission(self, request, view, obj):
-        if request.method in permissions.SAFE_METHODS:
+        if (
+            request.user.is_anonymous
+            and request.method in permissions.SAFE_METHODS
+        ):
             return True
-        user = request.user
-        if user.is_authenticated:
-            if user.is_admin or user.is_moderator:
-                return True
-            if obj.author == user:
-                return True
-        return False
-
-
-class IsAuthorOrAdminOrModeratorComment(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj):
-        if request.method in permissions.SAFE_METHODS:
+        elif (
+            request.user.is_authenticated and request.method == "POST"
+        ):
             return True
-        user = request.user
-        if user.is_authenticated:
-            if user.is_admin or user.is_moderator:
-                return True
-            if obj.author == user:
-                return True
-            if obj.review.author == user:
-                return True
-        return False
+        elif (
+            (request.user == obj.author
+             or request.user.role == "moderator"
+             or request.user.role == "admin")
+            and request.method in ("DELETE", "PATCH", "PUT")
+        ):
+            return True

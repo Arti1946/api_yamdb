@@ -1,11 +1,10 @@
 import uuid
-from rest_framework import filters, viewsets, permissions, status
+from rest_framework import filters, viewsets, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
-from django.db.models import Avg
 from api_yamdb.settings import YAMBD_EMAIL
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
@@ -13,11 +12,9 @@ from rest_framework_simplejwt.tokens import AccessToken
 from yamdb.models import Users, Titles, Categories, Genres, Reviews, Comments
 from api.v1.serializers import (
     TitleSerializer, CategorySerializer, GenreSerializer,
-    ReviewSerializer, CommentSerializer, UserSerializer,SendCodeSerializer,CheckCodeSerializer
+    ReviewSerializer, CommentSerializer, UserSerializer, SendCodeSerializer, CheckCodeSerializer
 )
-from api.permissions import IsAuthorOrAdminOrModerator, IsAuthorOrAdminOrModeratorComment
-
-
+from api.permissions import IsAdmin, IsAdminOrReadOnly, IsAuthorOrAdminOrModeratorOrReadOnly
 
 
 @api_view(['POST'])
@@ -72,13 +69,12 @@ def get_jwt_token(request):
     )
 
 
-
-
 class CategoryViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ("name",)
     queryset = Categories.objects.all()
     serializer_class = CategorySerializer
+    permission_classes = [IsAdminOrReadOnly]
 
 
 class GenreViewSet(viewsets.ModelViewSet):
@@ -86,6 +82,7 @@ class GenreViewSet(viewsets.ModelViewSet):
     search_fields = ("name",)
     queryset = Genres.objects.all()
     serializer_class = GenreSerializer
+    permission_classes = [IsAdminOrReadOnly]
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -93,6 +90,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Titles.objects.select_related("category")
     filterset_fields = ("category", "genre", "name", "year")
     serializer_class = TitleSerializer
+    permission_classes = [IsAdminOrReadOnly]
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -100,6 +98,8 @@ class UserViewSet(viewsets.ModelViewSet):
     search_fields = ("username",)
     serializer_class = UserSerializer
     queryset = Users.objects.all()
+    permission_classes = [IsAdmin]
+
 
 class UserDetailPach(APIView):
     def get(self, request):
@@ -125,24 +125,9 @@ class UserDetailPach(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-@api_view(["GET", "PATCH"])
-def api_me(request):
-    me = request.user.username
-    info = Users.objects.get(username=me)
-    if request.method == "PATCH":
-        serializer = UserSerializer(info, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    serializer = UserSerializer(info)
-    return Response(serializer.data)
-
-
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
-                          IsAuthorOrAdminOrModerator]
+    permission_classes = [IsAuthorOrAdminOrModeratorOrReadOnly]
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
@@ -155,8 +140,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
-                          IsAuthorOrAdminOrModeratorComment]
+    permission_classes = [IsAuthorOrAdminOrModeratorOrReadOnly]
 
     def get_queryset(self):
         review_id = self.kwargs.get('review_id')
