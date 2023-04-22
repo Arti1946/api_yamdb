@@ -99,6 +99,7 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     queryset = Users.objects.all()
     permission_classes = [IsAdmin]
+    lookup_field = "username"
 
 
 class UserDetailPach(APIView):
