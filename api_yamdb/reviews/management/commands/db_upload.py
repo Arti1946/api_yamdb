@@ -2,7 +2,15 @@ import csv
 
 from django.core.management.base import BaseCommand
 
-from yamdb.models import Categories, Genres, GenreTitle, Titles, Users, Comments, Reviews
+from yamdb.models import (
+    Categories,
+    Genres,
+    GenreTitle,
+    Titles,
+    Users,
+    Comments,
+    Reviews,
+)
 
 
 def category(file):
