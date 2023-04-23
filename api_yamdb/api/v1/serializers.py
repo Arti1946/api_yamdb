@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+import re
+
 from django.shortcuts import get_object_or_404
 from django.db.models import Avg
 
@@ -9,7 +11,7 @@ from yamdb.models import Categories, Genres, Titles, Users, GenreTitle, Reviews,
 
 
 class SendCodeSerializer(serializers.Serializer):
-    email = serializers.EmailField(required=True)
+    email = serializers.EmailField(required=True, max_length=254)
     username = serializers.RegexField(
         regex=r'^[\w.@+-]+$',
         max_length=150,
@@ -48,10 +50,7 @@ class TitleSerializer(serializers.ModelSerializer):
     genre = serializers.SlugRelatedField(
         slug_field="slug", queryset=Genres.objects.all(), many=True
     )
-    category = serializers.SlugRelatedField(
-        slug_field="slug",
-        queryset=Categories.objects.all(),
-    )
+    category = serializers.SlugRelatedField(slug_field="slug", queryset=Categories.objects.all())
     rating = serializers.SerializerMethodField()
 
     class Meta:
@@ -78,6 +77,13 @@ class TitleSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    def validate_username(self, value):
+        regex = re.compile(r'^[\w.@+-]+\Z')
+        if regex.match(value):
+            return value
+        else:
+            raise serializers.ValidationError("Выберите другое имя")
+
     class Meta:
         fields = (
             "username",
@@ -99,7 +105,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reviews
         fields = (
-            "title",
+            "id",
             "text",
             "author",
             "score",
