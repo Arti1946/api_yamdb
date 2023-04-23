@@ -12,7 +12,8 @@ class Users(AbstractUser):
     bio = models.TextField("Биография", blank=True)
     role = models.CharField(choices=ROLES, max_length=9, default="user")
     email = models.EmailField(unique=True)
-    username = models.CharField(max_length=150, unique=True, primary_key=True)
+    username = models.CharField(max_length=150, unique=True)
+    confirmation_code = models.CharField(max_length=40, blank=True, null=True)
 
 
 class Categories(models.Model):
@@ -60,3 +61,23 @@ class GenreTitle(models.Model):
 
     def __str__(self):
         return f"{self.title} {self.genre}"
+
+
+class Reviews(models.Model):
+    title = models.ForeignKey(Titles, on_delete=models.CASCADE, related_name='reviews')
+    text = models.TextField("Текст")
+    author = models.ForeignKey(Users, on_delete=models.CASCADE)
+    score = models.PositiveIntegerField(choices=[(i, i) for i in range(1, 11)])
+    pub_date = models.DateTimeField("Дата публикации", auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['title', 'author'], name='unique_review')
+        ]
+
+
+class Comments(models.Model):
+    review = models.ForeignKey(Reviews, on_delete=models.CASCADE)
+    text = models.TextField("Текст")
+    author = models.ForeignKey(Users, on_delete=models.CASCADE)
+    pub_date = models.DateTimeField("Дата публикации", auto_now_add=True)
