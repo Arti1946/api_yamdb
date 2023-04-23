@@ -1,5 +1,5 @@
 import uuid
-from rest_framework import filters, viewsets, status
+from rest_framework import filters, viewsets, status, mixins
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
@@ -69,25 +69,31 @@ def get_jwt_token(request):
     )
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class ListCreateDeleteViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
+    pass
+
+
+class CategoryViewSet(ListCreateDeleteViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ("name",)
     queryset = Categories.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAdminOrReadOnly]
+    lookup_field = "slug"
 
 
-class GenreViewSet(viewsets.ModelViewSet):
+class GenreViewSet(ListCreateDeleteViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ("name",)
     queryset = Genres.objects.all()
     serializer_class = GenreSerializer
     permission_classes = [IsAdminOrReadOnly]
+    lookup_field = "slug"
 
 
 class TitleViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
-    queryset = Titles.objects.select_related("category")
+    queryset = Titles.objects.select_related("category",)
     filterset_fields = ("category", "genre", "name", "year")
     serializer_class = TitleSerializer
     permission_classes = [IsAdminOrReadOnly]
@@ -100,6 +106,7 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = Users.objects.all()
     permission_classes = [IsAdmin]
     lookup_field = "username"
+    http_method_names = ['get', 'post', 'head', "patch", "delete"]
 
 
 class UserDetailPach(APIView):
