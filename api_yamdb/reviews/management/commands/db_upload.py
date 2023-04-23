@@ -2,14 +2,14 @@ import csv
 
 from django.core.management.base import BaseCommand
 
-from yamdb.models import (
+from reviews.models import (
     Categories,
     Genres,
     GenreTitle,
-    Titles,
+    Title,
     Users,
     Comments,
-    Reviews,
+    Review,
 )
 
 
@@ -39,7 +39,7 @@ def titles(file):
     input_file = csv.DictReader(open(file, encoding="utf8"))
     for row in input_file:
         cate = Categories.objects.get(id=row["category"])
-        Titles.objects.create(
+        Title.objects.create(
             id=row["id"],
             name=row["name"],
             year=row["year"],
@@ -78,7 +78,7 @@ def review(file):
     input_file = csv.DictReader(open(file, encoding="utf8"))
     for row in input_file:
         author = Users.objects.get(id=row["author"])
-        Reviews.objects.create(
+        Review.objects.create(
             id=row["id"],
             title_id=row["title_id"],
             text=row["text"],
