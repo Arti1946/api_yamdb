@@ -1,6 +1,5 @@
 from http import HTTPStatus
 
-
 check_name_and_slug_patterns = (
     (
         {"name": "a" * 256 + "simbols", "slug": "longname"},
