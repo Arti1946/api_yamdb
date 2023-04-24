@@ -26,6 +26,7 @@ from api.permissions import (
     IsAdminOrReadOnly,
     IsAuthorOrAdminOrModeratorOrReadOnly,
 )
+from api.v1.filters import TitleFilter
 
 
 @api_view(["POST"])
@@ -109,13 +110,14 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.select_related(
         "category",
     )
-    filterset_fields = ("category", "genre", "name", "year")
+    filterset_fields = ("genre", "year", "name", "category")
+    filterset_class = TitleFilter
     permission_classes = [IsAdminOrReadOnly]
 
     def get_serializer_class(self):
-        if self.request.method in ("POST", "PATCH"):
-            return TitleSerializerPost
-        return TitleSerializer
+        if self.action in ("list", "retrieve"):
+            return TitleSerializer
+        return TitleSerializerPost
 
 
 class UserViewSet(viewsets.ModelViewSet):
