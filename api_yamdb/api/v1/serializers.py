@@ -1,20 +1,13 @@
-from rest_framework import serializers
-
 import re
-
-from django.shortcuts import get_object_or_404
-from django.db.models import Avg
-
 from datetime import datetime as dt
 
+from rest_framework import serializers
+
+from django.db.models import Avg
+from django.shortcuts import get_object_or_404
+
 from reviews.models import (
-    Categories,
-    Genres,
-    Title,
-    Users,
-    GenreTitle,
-    Review,
-    Comments,
+    Categories, Comments, Genres, GenreTitle, Review, Title, Users,
 )
 
 

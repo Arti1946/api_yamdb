@@ -1,32 +1,26 @@
 import uuid
-from rest_framework import filters, viewsets, status, mixins
+
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from django_filters.rest_framework import DjangoFilterBackend
-from django.core.mail import send_mail
-from django.shortcuts import get_object_or_404
-from api_yamdb.settings import YAMBD_EMAIL
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 
-from reviews.models import Users, Title, Categories, Genres, Review, Comments
-from api.v1.serializers import (
-    TitleSerializer,
-    CategorySerializer,
-    GenreSerializer,
-    ReviewSerializer,
-    CommentSerializer,
-    UserSerializer,
-    SendCodeSerializer,
-    CheckCodeSerializer,
-    TitleSerializerPost,
-)
+from django.core.mail import send_mail
+from django.shortcuts import get_object_or_404
+
 from api.permissions import (
-    IsAdmin,
-    IsAdminOrReadOnly,
-    IsAuthorOrAdminOrModeratorOrReadOnly,
+    IsAdmin, IsAdminOrReadOnly, IsAuthorOrAdminOrModeratorOrReadOnly,
 )
 from api.v1.filters import TitleFilter
+from api.v1.serializers import (
+    CategorySerializer, CheckCodeSerializer, CommentSerializer,
+    GenreSerializer, ReviewSerializer, SendCodeSerializer, TitleSerializer,
+    TitleSerializerPost, UserSerializer,
+)
+from api_yamdb.settings import YAMBD_EMAIL
+from reviews.models import Categories, Comments, Genres, Review, Title, Users
 
 
 @api_view(["POST"])
