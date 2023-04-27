@@ -1,4 +1,5 @@
 import datetime
+import re
 
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
@@ -7,6 +8,13 @@ from django.utils.translation import gettext_lazy as _
 
 
 class Users(AbstractUser):
+    def validate_username(value):
+        regex = re.compile(r"^[\w.@+-]+\Z")
+        if not regex.match(value):
+            raise ValidationError("Выберите другое имя")
+        elif value == "me":
+            raise ValidationError("Нельзя выбрать такое имя")
+
     class Roles(models.TextChoices):
         USER = "user", _("Пользователь")
         MODERATOR = "moderator", _("Модератор")
@@ -24,7 +32,10 @@ class Users(AbstractUser):
     )
     email = models.EmailField(unique=True, max_length=254)
     username = models.CharField(
-        "Имя пользователя", max_length=150, unique=True
+        "Имя пользователя",
+        max_length=150,
+        unique=True,
+        validators=[validate_username],
     )
 
 
