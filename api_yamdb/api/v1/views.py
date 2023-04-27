@@ -103,7 +103,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     queryset = Title.objects.select_related(
         "category",
-    )
+    ).prefetch_related("genre")
     filterset_fields = ("genre", "year", "name", "category")
     filterset_class = TitleFilter
     permission_classes = [IsAdminOrReadOnly]
@@ -152,7 +152,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         title_id = self.kwargs.get("title_id")
-        return Review.objects.filter(title=title_id)
+        return Review.objects.select_related("author").filter(title=title_id)
 
     def perform_create(self, serializer):
         title_id = self.kwargs.get("title_id")
@@ -166,7 +166,9 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         review_id = self.kwargs.get("review_id")
-        return Comments.objects.filter(review=review_id)
+        return Comments.objects.select_related("author").filter(
+            review=review_id
+        )
 
     def perform_create(self, serializer):
         review_id = self.kwargs.get("review_id")

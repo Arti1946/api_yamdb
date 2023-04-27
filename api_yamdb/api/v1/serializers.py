@@ -1,5 +1,4 @@
 import re
-from datetime import datetime as dt
 
 from rest_framework import serializers
 
@@ -84,12 +83,6 @@ class TitleSerializerPost(serializers.ModelSerializer):
             "rating",
         )
         model = Title
-
-    def validate_birth_year(self, value):
-        year = dt.date.today().year
-        if value > year:
-            raise serializers.ValidationError("Проверьте год Создания!")
-        return value
 
     def create(self, validated_data):
         genres = validated_data.pop("genre")
