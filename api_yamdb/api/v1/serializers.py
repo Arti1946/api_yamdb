@@ -1,5 +1,3 @@
-import re
-
 from rest_framework import serializers
 
 from django.db.models import Avg
@@ -12,20 +10,11 @@ from reviews.models import (
 
 class SendCodeSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True, max_length=254)
-    username = serializers.RegexField(
-        regex=r"^[\w.@+-]+$", max_length=150, required=True
-    )
-
-    def validate_username(self, value):
-        if value == "me":
-            raise serializers.ValidationError("Нельзя выбрать такое имя")
-        return value
+    username = serializers.CharField(max_length=150, required=True)
 
 
 class CheckCodeSerializer(serializers.Serializer):
-    username = serializers.RegexField(
-        regex=r"^[\w.@+-]+$", max_length=150, required=True
-    )
+    username = serializers.CharField(max_length=150, required=True)
     confirmation_code = serializers.CharField(required=True)
 
 
@@ -98,13 +87,6 @@ class TitleSerializerPost(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    def validate_username(self, value):
-        regex = re.compile(r"^[\w.@+-]+\Z")
-        if regex.match(value):
-            return value
-        else:
-            raise serializers.ValidationError("Выберите другое имя")
-
     class Meta:
         fields = (
             "username",
