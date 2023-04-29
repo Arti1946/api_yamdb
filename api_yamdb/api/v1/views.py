@@ -21,6 +21,24 @@ from api.v1.serializers import (
 )
 from api_yamdb.settings import YAMBD_EMAIL
 from reviews.models import Categories, Comments, Genres, Review, Title, Users
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.exceptions import InvalidToken
+
+# Создание токена
+def create_token(user):
+    refresh = RefreshToken.for_user(user)
+    return {
+        "refresh": str(refresh),
+        "access": str(refresh.access_token),
+    }
+
+# Проверка токена
+def check_token(token):
+    try:
+        token = RefreshToken(token)
+        return token.payload["user_id"]
+    except InvalidToken:
+        return None
 
 
 @api_view(["POST"])
@@ -45,7 +63,7 @@ def send_confirmation_code(request):
     send_mail(
         "Подтверждение аккаунта на Yamdb",
         f"Код подтверждения: {user.confirmation_code}",
-        YAMBD_EMAIL,
+        None,
         [email],
         fail_silently=True,
     )

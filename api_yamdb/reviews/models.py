@@ -15,7 +15,6 @@ class Users(AbstractUser):
     username = models.CharField(max_length=150, unique=True)
     confirmation_code = models.CharField(max_length=40, blank=True, null=True)
 
-
 class Categories(models.Model):
     name = models.CharField(max_length=256, blank=False, null=False)
     slug = models.SlugField(
