@@ -17,10 +17,10 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "reviews.apps.ReviewsConfig",
-    "api.apps.ApiConfig",
     "rest_framework",
     "django_filters",
+    "reviews.apps.ReviewsConfig",
+    "api.apps.ApiConfig",
 ]
 
 MIDDLEWARE = [
@@ -114,3 +114,4 @@ SIMPLE_JWT = {
 EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
 YAMBD_EMAIL = "yamdb@ya.ru"
+DEFAULT_FROM_EMAIL = "test11@test.com"

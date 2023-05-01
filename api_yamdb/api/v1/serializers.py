@@ -1,32 +1,32 @@
-import re
-from datetime import datetime as dt
-
 from rest_framework import serializers
 
-from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 
 from reviews.models import (
-    Categories, Comments, Genres, GenreTitle, Review, Title, Users,
+    Categories,
+    Comments,
+    Genres,
+    GenreTitle,
+    Review,
+    Title,
+    Users,
 )
+from reviews.validatorsr import validate_username
 
 
-class SendCodeSerializer(serializers.Serializer):
-    email = serializers.EmailField(required=True, max_length=254)
-    username = serializers.RegexField(
-        regex=r"^[\w.@+-]+$", max_length=150, required=True
+class SendCodeSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(
+        max_length=150, validators=[validate_username]
     )
+    email = serializers.EmailField(max_length=254)
 
-    def validate_username(self, value):
-        if value == "me":
-            raise serializers.ValidationError("Нельзя выбрать такое имя")
-        return value
+    class Meta:
+        fields = ("username", "email")
+        model = Users
 
 
 class CheckCodeSerializer(serializers.Serializer):
-    username = serializers.RegexField(
-        regex=r"^[\w.@+-]+$", max_length=150, required=True
-    )
+    username = serializers.CharField(max_length=150, required=True)
     confirmation_code = serializers.CharField(required=True)
 
 
@@ -45,7 +45,7 @@ class GenreSerializer(serializers.ModelSerializer):
 class TitleSerializer(serializers.ModelSerializer):
     genre = GenreSerializer(many=True)
     category = CategorySerializer()
-    rating = serializers.SerializerMethodField()
+    rating = serializers.IntegerField(read_only=True)
 
     class Meta:
         fields = (
@@ -58,10 +58,6 @@ class TitleSerializer(serializers.ModelSerializer):
             "rating",
         )
         model = Title
-
-    def get_rating(self, title):
-        rating = title.reviews.aggregate(Avg("score"))["score__avg"]
-        return rating if rating is not None else None
 
 
 class TitleSerializerPost(serializers.ModelSerializer):
@@ -71,7 +67,7 @@ class TitleSerializerPost(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(
         queryset=Categories.objects.all(), slug_field="slug"
     )
-    rating = serializers.SerializerMethodField()
+    rating = serializers.IntegerField(read_only=True)
 
     class Meta:
         fields = (
@@ -85,12 +81,6 @@ class TitleSerializerPost(serializers.ModelSerializer):
         )
         model = Title
 
-    def validate_birth_year(self, value):
-        year = dt.date.today().year
-        if value > year:
-            raise serializers.ValidationError("Проверьте год Создания!")
-        return value
-
     def create(self, validated_data):
         genres = validated_data.pop("genre")
         title = Title.objects.create(**validated_data)
@@ -99,19 +89,8 @@ class TitleSerializerPost(serializers.ModelSerializer):
             GenreTitle.objects.create(genre=current_genre, title=title)
         return title
 
-    def get_rating(self, title):
-        rating = title.reviews.aggregate(Avg("score"))["score__avg"]
-        return rating if rating is not None else None
-
 
 class UserSerializer(serializers.ModelSerializer):
-    def validate_username(self, value):
-        regex = re.compile(r"^[\w.@+-]+\Z")
-        if regex.match(value):
-            return value
-        else:
-            raise serializers.ValidationError("Выберите другое имя")
-
     class Meta:
         fields = (
             "username",

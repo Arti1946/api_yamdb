@@ -1,19 +1,34 @@
-from django.contrib.auth.models import AbstractUser
-from django.db import models
+import datetime
 
-ROLES = [
-    ("user", "Пользователь"),
-    ("moderator", "Модератор"),
-    ("admin", "Администратор"),
-]
+from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
+from django.utils.translation import gettext_lazy as _
+
+from reviews.validatorsr import validate_username
 
 
 class Users(AbstractUser):
+    class Roles(models.TextChoices):
+        USER = "user", _("Пользователь")
+        MODERATOR = "moderator", _("Модератор")
+        ADMIN = (
+            "admin",
+            _("Администратор"),
+        )
+
     bio = models.TextField("Биография", blank=True)
-    role = models.CharField(choices=ROLES, max_length=9, default="user")
-    email = models.EmailField(unique=True)
-    username = models.CharField(max_length=150, unique=True)
-    confirmation_code = models.CharField(max_length=40, blank=True, null=True)
+    role = models.CharField(
+        verbose_name="Роль",
+        max_length=9,
+        choices=Roles.choices,
+        default=Roles.USER,
+    )
+    email = models.EmailField(unique=True, max_length=254)
+    username = models.CharField(
+        max_length=150, unique=True, validators=[validate_username]
+    )
 
 
 class Categories(models.Model):
@@ -37,10 +52,17 @@ class Genres(models.Model):
 
 
 class Title(models.Model):
+    def validate_year(value):
+        year = datetime.date.today().year
+        if value > year:
+            raise ValidationError("Проверьте год Создания!")
+
     name = models.CharField(
         "Название", max_length=256, blank=False, null=False
     )
-    year = models.IntegerField("Год выпуска", blank=False, null=False)
+    year = models.IntegerField(
+        "Год выпуска", blank=False, null=False, validators=[validate_year]
+    )
     description = models.TextField("Описание", blank=True, null=True)
     genre = models.ManyToManyField(
         Genres,
@@ -68,14 +90,19 @@ class Review(models.Model):
         Title, on_delete=models.CASCADE, related_name="reviews"
     )
     text = models.TextField("Текст")
-    author = models.ForeignKey(Users, on_delete=models.CASCADE)
-    score = models.PositiveIntegerField(choices=[(i, i) for i in range(1, 11)])
+    author = models.ForeignKey(
+        Users, on_delete=models.CASCADE, related_name="reviews"
+    )
+    score = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(10)],
+        blank=False,
+    )
     pub_date = models.DateTimeField("Дата публикации", auto_now_add=True)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["title", "author"], name="unique_review"
+                fields=["title", "author"], name="uq_title_author"
             )
         ]
 
@@ -83,5 +110,7 @@ class Review(models.Model):
 class Comments(models.Model):
     review = models.ForeignKey(Review, on_delete=models.CASCADE)
     text = models.TextField("Текст")
-    author = models.ForeignKey(Users, on_delete=models.CASCADE)
+    author = models.ForeignKey(
+        Users, on_delete=models.CASCADE, verbose_name="comments"
+    )
     pub_date = models.DateTimeField("Дата публикации", auto_now_add=True)

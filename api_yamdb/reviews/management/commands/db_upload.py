@@ -3,11 +3,17 @@ import csv
 from django.core.management.base import BaseCommand
 
 from reviews.models import (
-    Categories, Comments, Genres, GenreTitle, Review, Title, Users,
+    Categories,
+    Comments,
+    Genres,
+    GenreTitle,
+    Review,
+    Title,
+    Users,
 )
 
 
-def category(file):
+def category(file: str) -> None:
     input_file = csv.DictReader(open(file, encoding="utf8"))
     for row in input_file:
         Categories.objects.create(
@@ -15,13 +21,13 @@ def category(file):
         )
 
 
-def genre(file):
+def genre(file: str) -> None:
     input_file = csv.DictReader(open(file, encoding="utf8"))
     for row in input_file:
         Genres.objects.create(id=row["id"], slug=row["slug"], name=row["name"])
 
 
-def genre_title(file):
+def genre_title(file: str) -> None:
     input_file = csv.DictReader(open(file, encoding="utf8"))
     for row in input_file:
         GenreTitle.objects.create(
@@ -29,7 +35,7 @@ def genre_title(file):
         )
 
 
-def titles(file):
+def titles(file: str) -> None:
     input_file = csv.DictReader(open(file, encoding="utf8"))
     for row in input_file:
         cate = Categories.objects.get(id=row["category"])
@@ -41,7 +47,7 @@ def titles(file):
         )
 
 
-def users(file):
+def users(file: str) -> None:
     input_file = csv.DictReader(open(file, encoding="utf8"))
     for row in input_file:
         Users.objects.create(
@@ -55,7 +61,7 @@ def users(file):
         )
 
 
-def comments(file):
+def comments(file: str) -> None:
     input_file = csv.DictReader(open(file, encoding="utf8"))
     for row in input_file:
         author = Users.objects.get(id=row["author"])
@@ -68,7 +74,7 @@ def comments(file):
         )
 
 
-def review(file):
+def review(file: str) -> None:
     input_file = csv.DictReader(open(file, encoding="utf8"))
     for row in input_file:
         author = Users.objects.get(id=row["author"])
