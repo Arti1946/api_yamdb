@@ -1,6 +1,5 @@
 from rest_framework import serializers
 
-from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 
 from reviews.models import (
@@ -33,7 +32,7 @@ class GenreSerializer(serializers.ModelSerializer):
 class TitleSerializer(serializers.ModelSerializer):
     genre = GenreSerializer(many=True)
     category = CategorySerializer()
-    rating = serializers.SerializerMethodField()
+    rating = serializers.IntegerField()
 
     class Meta:
         fields = (
@@ -47,10 +46,6 @@ class TitleSerializer(serializers.ModelSerializer):
         )
         model = Title
 
-    def get_rating(self, title):
-        rating = title.reviews.aggregate(Avg("score"))["score__avg"]
-        return rating if rating is not None else None
-
 
 class TitleSerializerPost(serializers.ModelSerializer):
     genre = serializers.SlugRelatedField(
@@ -59,7 +54,7 @@ class TitleSerializerPost(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(
         queryset=Categories.objects.all(), slug_field="slug"
     )
-    rating = serializers.SerializerMethodField()
+    rating = serializers.IntegerField()
 
     class Meta:
         fields = (
@@ -80,10 +75,6 @@ class TitleSerializerPost(serializers.ModelSerializer):
             current_genre = get_object_or_404(Genres, slug=genre)
             GenreTitle.objects.create(genre=current_genre, title=title)
         return title
-
-    def get_rating(self, title):
-        rating = title.reviews.aggregate(Avg("score"))["score__avg"]
-        return rating if rating is not None else None
 
 
 class UserSerializer(serializers.ModelSerializer):

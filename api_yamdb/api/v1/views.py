@@ -1,5 +1,3 @@
-import uuid
-
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import api_view
@@ -7,7 +5,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.mail import send_mail
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 
 from api.permissions import (
@@ -19,7 +19,6 @@ from api.v1.serializers import (
     GenreSerializer, ReviewSerializer, SendCodeSerializer, TitleSerializer,
     TitleSerializerPost, UserSerializer,
 )
-from api_yamdb.settings import YAMBD_EMAIL
 from reviews.models import Categories, Comments, Genres, Review, Title, Users
 
 
@@ -40,12 +39,12 @@ def send_confirmation_code(request):
             )
         Users.objects.create_user(username=username, email=email)
     user = Users.objects.get(username=username)
-    user.confirmation_code = uuid.uuid4()
-    user.save()
+    token = PasswordResetTokenGenerator()
+    code = token.make_token(user=user)
     send_mail(
         "Подтверждение аккаунта на Yamdb",
-        f"Код подтверждения: {user.confirmation_code}",
-        YAMBD_EMAIL,
+        f"Код подтверждения: {code}",
+        None,
         [email],
         fail_silently=True,
     )
@@ -63,7 +62,8 @@ def get_jwt_token(request):
     username = serializer.validated_data.get("username")
     confirmation_code = serializer.validated_data.get("confirmation_code")
     user = get_object_or_404(Users, username=username)
-    if confirmation_code == user.confirmation_code:
+    token = PasswordResetTokenGenerator()
+    if token.check_token(user=user, token=confirmation_code):
         token = AccessToken.for_user(user)
         return Response({"token": f"{token}"}, status=status.HTTP_200_OK)
     return Response(
@@ -101,9 +101,13 @@ class GenreViewSet(ListCreateDeleteViewSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
-    queryset = Title.objects.select_related(
-        "category",
-    ).prefetch_related("genre")
+    queryset = (
+        Title.objects.annotate(rating=Avg("reviews__score"))
+        .select_related(
+            "category",
+        )
+        .prefetch_related("genre")
+    )
     filterset_fields = ("genre", "year", "name", "category")
     filterset_class = TitleFilter
     permission_classes = [IsAdminOrReadOnly]

@@ -3,18 +3,18 @@ import re
 
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 
-class Users(AbstractUser):
-    def validate_username(value):
-        regex = re.compile(r"^[\w.@+-]+\Z")
-        if not regex.match(value):
-            raise ValidationError("Выберите другое имя")
-        elif value == "me":
-            raise ValidationError("Нельзя выбрать такое имя")
+def validate_username(value):
+    if value == "me":
+        raise ValidationError("Нельзя выбрать такое имя")
+    return value
 
+
+class Users(AbstractUser):
     class Roles(models.TextChoices):
         USER = "user", _("Пользователь")
         MODERATOR = "moderator", _("Модератор")
@@ -30,13 +30,8 @@ class Users(AbstractUser):
         choices=Roles.choices,
         default=Roles.USER,
     )
-    email = models.EmailField(unique=True, max_length=254)
-    username = models.CharField(
-        "Имя пользователя",
-        max_length=150,
-        unique=True,
-        validators=[validate_username],
-    )
+    email = models.EmailField(unique=True, max_length=254, null=False)
+    username = models.CharField(max_length=150, unique=True, null=False, validators=[RegexValidator(regex=r"^[\w.@+-]+$"), validate_username])
 
 
 class Categories(models.Model):
@@ -101,13 +96,16 @@ class Review(models.Model):
     author = models.ForeignKey(
         Users, on_delete=models.CASCADE, related_name="reviews"
     )
-    score = models.PositiveIntegerField(choices=[(i, i) for i in range(1, 11)])
+    score = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(10)],
+        blank=False,
+    )
     pub_date = models.DateTimeField("Дата публикации", auto_now_add=True)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["title", "author"], name="unique_review"
+                fields=["title", "author"], name="uq_title_author"
             )
         ]
 
