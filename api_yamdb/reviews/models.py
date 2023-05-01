@@ -1,17 +1,12 @@
 import datetime
-import re
 
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
-from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-
-def validate_username(value):
-    if value == "me":
-        raise ValidationError("Нельзя выбрать такое имя")
-    return value
+from reviews.validatorsr import validate_username
 
 
 class Users(AbstractUser):
@@ -30,8 +25,10 @@ class Users(AbstractUser):
         choices=Roles.choices,
         default=Roles.USER,
     )
-    email = models.EmailField(unique=True, max_length=254, null=False)
-    username = models.CharField(max_length=150, unique=True, null=False, validators=[RegexValidator(regex=r"^[\w.@+-]+$"), validate_username])
+    email = models.EmailField(unique=True, max_length=254)
+    username = models.CharField(
+        max_length=150, unique=True, validators=[validate_username]
+    )
 
 
 class Categories(models.Model):

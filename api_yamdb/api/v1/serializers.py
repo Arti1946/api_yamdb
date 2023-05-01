@@ -3,13 +3,26 @@ from rest_framework import serializers
 from django.shortcuts import get_object_or_404
 
 from reviews.models import (
-    Categories, Comments, Genres, GenreTitle, Review, Title, Users,
+    Categories,
+    Comments,
+    Genres,
+    GenreTitle,
+    Review,
+    Title,
+    Users,
 )
+from reviews.validatorsr import validate_username
 
 
-class SendCodeSerializer(serializers.Serializer):
-    email = serializers.EmailField(required=True, max_length=254)
-    username = serializers.CharField(max_length=150, required=True)
+class SendCodeSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(
+        max_length=150, validators=[validate_username]
+    )
+    email = serializers.EmailField(max_length=254)
+
+    class Meta:
+        fields = ("username", "email")
+        model = Users
 
 
 class CheckCodeSerializer(serializers.Serializer):

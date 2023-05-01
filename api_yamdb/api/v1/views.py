@@ -11,13 +11,21 @@ from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 
 from api.permissions import (
-    IsAdmin, IsAdminOrReadOnly, IsAuthorOrAdminOrModeratorOrReadOnly,
+    IsAdmin,
+    IsAdminOrReadOnly,
+    IsAuthorOrAdminOrModeratorOrReadOnly,
 )
 from api.v1.filters import TitleFilter
 from api.v1.serializers import (
-    CategorySerializer, CheckCodeSerializer, CommentSerializer,
-    GenreSerializer, ReviewSerializer, SendCodeSerializer, TitleSerializer,
-    TitleSerializerPost, UserSerializer,
+    CategorySerializer,
+    CheckCodeSerializer,
+    CommentSerializer,
+    GenreSerializer,
+    ReviewSerializer,
+    SendCodeSerializer,
+    TitleSerializer,
+    TitleSerializerPost,
+    UserSerializer,
 )
 from reviews.models import Categories, Comments, Genres, Review, Title, Users
 
@@ -25,30 +33,31 @@ from reviews.models import Categories, Comments, Genres, Review, Title, Users
 @api_view(["POST"])
 def send_confirmation_code(request):
     serializer = SendCodeSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-    username = serializer.validated_data.get("username")
-    email = serializer.validated_data.get("email")
-    if not Users.objects.filter(username=username, email=email).exists():
-        if (
-            Users.objects.filter(username=username).exists()
-            or Users.objects.filter(email=email).exists()
-        ):
-            return Response(
-                {"result": "Этот email или username уже используются."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        Users.objects.create_user(username=username, email=email)
-    user = Users.objects.get(username=username)
-    token = PasswordResetTokenGenerator()
-    code = token.make_token(user=user)
-    send_mail(
-        "Подтверждение аккаунта на Yamdb",
-        f"Код подтверждения: {code}",
-        None,
-        [email],
-        fail_silently=True,
-    )
-    return Response(serializer.data, status=status.HTTP_200_OK)
+    if serializer.is_valid():
+        username = serializer.validated_data.get("username")
+        email = serializer.validated_data.get("email")
+        token = PasswordResetTokenGenerator()
+        if not Users.objects.filter(username=username, email=email).exists():
+            if (
+                Users.objects.filter(username=username).exists()
+                or Users.objects.filter(email=email).exists()
+            ):
+                return Response(
+                    {"result": "Этот email или username уже используются."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            Users.objects.create_user(username=username, email=email)
+        user = Users.objects.get(username=username)
+        code = token.make_token(user=user)
+        send_mail(
+            "Подтверждение аккаунта на Yamdb",
+            f"Код подтверждения: {code}",
+            None,
+            [email],
+            fail_silently=True,
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(["POST"])
