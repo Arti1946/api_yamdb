@@ -32,7 +32,7 @@ class GenreSerializer(serializers.ModelSerializer):
 class TitleSerializer(serializers.ModelSerializer):
     genre = GenreSerializer(many=True)
     category = CategorySerializer()
-    rating = serializers.IntegerField()
+    rating = serializers.IntegerField(read_only=True)
 
     class Meta:
         fields = (
@@ -54,7 +54,7 @@ class TitleSerializerPost(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(
         queryset=Categories.objects.all(), slug_field="slug"
     )
-    rating = serializers.IntegerField()
+    rating = serializers.IntegerField(read_only=True)
 
     class Meta:
         fields = (
